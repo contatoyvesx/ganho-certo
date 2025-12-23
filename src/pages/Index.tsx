@@ -1,41 +1,58 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Users, FileText, DollarSign, ArrowRight, CheckCircle } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/60">
       {/* Header */}
-      <header className="border-b border-border">
+      <header className="border-b border-border/60 bg-background/80 backdrop-blur">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-primary rounded-xl shadow-soft flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">GS</span>
             </div>
             <span className="font-semibold text-lg text-foreground">Gestão Simples</span>
           </div>
-          <Link to="/auth">
-            <Button variant="outline" size="sm">
-              Entrar
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link to="/auth">
+              <Button variant="outline" size="sm">
+                Entrar
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 md:py-32">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 animate-fade-in">
-            Saiba exatamente quanto<br />você ganhou no mês.
+      <section className="relative py-20 md:py-32 overflow-hidden">
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 right-10 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl" />
+        <div className="container mx-auto px-4 text-center relative">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground shadow-soft animate-fade-in">
+            SaaS simples para prestadores
+          </div>
+          <h1 className="mt-6 text-4xl md:text-6xl font-bold text-foreground mb-6 animate-fade-in">
+            Saiba exatamente quanto<br />
+            <span className="bg-gradient-to-r from-primary to-sky-400 bg-clip-text text-transparent">
+              você ganhou no mês.
+            </span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
             Um controle fácil de clientes, orçamentos e pagamentos para prestadores de serviço.
           </p>
-          <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <Link to="/auth?mode=signup">
-              <Button size="lg" className="text-lg px-8 py-6 h-auto">
+              <Button size="lg" className="text-lg px-8 py-6 h-auto glow-primary">
                 Criar conta grátis
                 <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <Link to="/auth">
+              <Button variant="outline" size="lg" className="text-lg px-8 py-6 h-auto">
+                Ver painel
               </Button>
             </Link>
           </div>
@@ -43,14 +60,15 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-secondary/50">
+      <section className="py-20 bg-background/60">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-semibold text-center text-foreground mb-16">
             Como funciona
           </h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {/* Feature 1 */}
-            <div className="bg-card rounded-xl p-8 shadow-sm border border-border animate-scale-in" style={{ animationDelay: '0.1s' }}>
+            <div className="group relative bg-card rounded-2xl p-8 shadow-soft border border-border/80 animate-scale-in hover:-translate-y-1 hover:shadow-soft-lg transition-all overflow-hidden" style={{ animationDelay: '0.1s' }}>
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
                 <Users className="h-7 w-7 text-primary" />
               </div>
@@ -61,7 +79,8 @@ const Index = () => {
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-card rounded-xl p-8 shadow-sm border border-border animate-scale-in" style={{ animationDelay: '0.2s' }}>
+            <div className="group relative bg-card rounded-2xl p-8 shadow-soft border border-border/80 animate-scale-in hover:-translate-y-1 hover:shadow-soft-lg transition-all overflow-hidden" style={{ animationDelay: '0.2s' }}>
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
                 <FileText className="h-7 w-7 text-primary" />
               </div>
@@ -72,7 +91,8 @@ const Index = () => {
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-card rounded-xl p-8 shadow-sm border border-border animate-scale-in" style={{ animationDelay: '0.3s' }}>
+            <div className="group relative bg-card rounded-2xl p-8 shadow-soft border border-border/80 animate-scale-in hover:-translate-y-1 hover:shadow-soft-lg transition-all overflow-hidden" style={{ animationDelay: '0.3s' }}>
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
                 <DollarSign className="h-7 w-7 text-primary" />
               </div>
@@ -92,7 +112,8 @@ const Index = () => {
             <h2 className="text-2xl md:text-3xl font-semibold text-center text-foreground mb-12">
               Feito para quem trabalha de verdade
             </h2>
-            <div className="space-y-6">
+            <div className="space-y-6 bg-card/80 border border-border/70 rounded-2xl p-8 shadow-soft relative overflow-hidden">
+              <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
               {[
                 "Eletricistas",
                 "Encanadores", 
@@ -106,7 +127,9 @@ const Index = () => {
                   className="flex items-center gap-4 animate-slide-up"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <CheckCircle className="h-6 w-6 text-success flex-shrink-0" />
+                  <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
+                    <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />
+                  </div>
                   <span className="text-lg text-foreground">{item}</span>
                 </div>
               ))}
@@ -125,7 +148,7 @@ const Index = () => {
             Organize seu trabalho em poucos minutos. Sem complicação.
           </p>
           <Link to="/auth?mode=signup">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-6 h-auto">
+            <Button size="lg" variant="secondary" className="text-lg px-8 py-6 h-auto shadow-soft">
               Criar minha conta
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -134,7 +157,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 border-t border-border">
+      <footer className="py-8 border-t border-border/60">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
           <p>© 2024 Gestão Simples. Feito para prestadores de serviço.</p>
         </div>

@@ -109,7 +109,8 @@ const Dashboard = () => {
         </div>
 
         {/* Main Stat */}
-        <div className="bg-primary rounded-2xl p-8 mb-6 animate-scale-in">
+        <div className="bg-gradient-to-br from-primary via-primary to-primary/80 rounded-2xl p-8 mb-6 animate-scale-in shadow-soft-lg relative overflow-hidden">
+          <div className="pointer-events-none absolute -top-16 right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
           <p className="text-primary-foreground/80 mb-2">Este mês você ganhou</p>
           <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
             R$ {stats.received.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -119,7 +120,7 @@ const Dashboard = () => {
         {/* Stats Grid */}
         <div className="grid md:grid-cols-2 gap-4">
           {/* Pending */}
-          <div className="bg-card border border-border rounded-xl p-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <div className="bg-card border border-border/80 rounded-2xl p-6 animate-slide-up shadow-soft transition-transform hover:-translate-y-0.5 hover:shadow-soft-lg" style={{ animationDelay: '0.1s' }}>
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-muted-foreground mb-1">Pendente</p>
@@ -127,14 +128,14 @@ const Dashboard = () => {
                   R$ {stats.pending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-warning/10 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-warning/10 rounded-2xl flex items-center justify-center">
                 <Clock className="h-6 w-6 text-warning" />
               </div>
             </div>
           </div>
 
           {/* Lost */}
-          <div className="bg-card border border-border rounded-xl p-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <div className="bg-card border border-border/80 rounded-2xl p-6 animate-slide-up shadow-soft transition-transform hover:-translate-y-0.5 hover:shadow-soft-lg" style={{ animationDelay: '0.2s' }}>
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-muted-foreground mb-1">Orçamentos perdidos</p>
@@ -142,7 +143,7 @@ const Dashboard = () => {
                   R$ {stats.lost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-destructive/10 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-destructive/10 rounded-2xl flex items-center justify-center">
                 <XCircle className="h-6 w-6 text-destructive" />
               </div>
             </div>
@@ -153,7 +154,7 @@ const Dashboard = () => {
         {recentPayments.length > 0 && (
           <div className="mt-8">
             <h2 className="text-lg font-semibold text-foreground mb-4">Atividade recente</h2>
-            <div className="bg-card border border-border rounded-xl divide-y divide-border">
+            <div className="bg-card border border-border/80 rounded-2xl divide-y divide-border/80 shadow-soft">
               {recentPayments.map((payment) => (
                 <div key={payment.id} className="p-4 flex items-center justify-between">
                   <div>
@@ -175,7 +176,7 @@ const Dashboard = () => {
         )}
 
         {recentPayments.length === 0 && (
-          <div className="mt-8 text-center py-12 bg-card border border-border rounded-xl">
+          <div className="mt-8 text-center py-12 bg-card border border-border/80 rounded-2xl shadow-soft">
             <p className="text-muted-foreground">
               Nenhuma atividade ainda. Comece cadastrando seus clientes e orçamentos!
             </p>

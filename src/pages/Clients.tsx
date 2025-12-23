@@ -126,7 +126,7 @@ const Clients = () => {
                 Novo cliente
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md rounded-2xl">
               <DialogHeader>
                 <DialogTitle>Novo cliente</DialogTitle>
               </DialogHeader>
@@ -204,7 +204,7 @@ const Clients = () => {
         ) : (
           <div className="space-y-3">
             {filteredClients.length === 0 ? (
-              <div className="text-center py-12 bg-card border border-border rounded-xl">
+              <div className="text-center py-12 bg-card border border-border/80 rounded-2xl shadow-soft">
                 <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
                   {clients.length === 0 ? "Nenhum cliente cadastrado ainda" : "Nenhum cliente encontrado"}
@@ -214,7 +214,7 @@ const Clients = () => {
               filteredClients.map((client, index) => (
                 <div
                   key={client.id}
-                  className="bg-card border border-border rounded-xl p-4 flex items-center justify-between animate-slide-up"
+                  className="bg-card border border-border/80 rounded-2xl p-4 flex items-center justify-between animate-slide-up shadow-soft transition-transform hover:-translate-y-0.5 hover:shadow-soft-lg"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
                   <div className="flex items-center gap-4">
