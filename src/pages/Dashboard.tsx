@@ -1,91 +1,89 @@
-import { useState, useEffect } from "react";
 import { Clock, XCircle, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Payment {
-  id: string;
-  client_name: string;
-  service: string;
-  value: number;
-  status: "pending" | "paid";
-  created_at: string;
-}
-
-interface Quote {
-  id: string;
-  value: number;
-  status: "sent" | "approved" | "lost";
-}
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    received: 0,
-    pending: 0,
-    lost: 0,
-  });
-  const [recentPayments, setRecentPayments] = useState<Payment[]>([]);
+  const { toast } = useToast();
 
   const currentMonth = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
-  const fetchData = async () => {
-    if (!user) return;
+  const { data, isLoading } = useQuery({
+    queryKey: ["dashboard", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
 
-    // Get current month range
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-    // Fetch payments
-    const { data: payments } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("user_id", user.id)
-      .gte("created_at", startOfMonth)
-      .lte("created_at", endOfMonth);
+      const { data: payments, error: paymentsError } = await supabase
+        .from("payments")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("created_at", startOfMonth)
+        .lte("created_at", endOfMonth);
 
-    // Fetch quotes for lost value
-    const { data: quotes } = await supabase
-      .from("quotes")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("status", "lost")
-      .gte("created_at", startOfMonth)
-      .lte("created_at", endOfMonth);
+      if (paymentsError) {
+        throw paymentsError;
+      }
 
-    const received = (payments || [])
-      .filter((p) => p.status === "paid")
-      .reduce((sum, p) => sum + Number(p.value), 0);
+      const { data: quotes, error: quotesError } = await supabase
+        .from("quotes")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("status", "lost")
+        .gte("created_at", startOfMonth)
+        .lte("created_at", endOfMonth);
 
-    const pending = (payments || [])
-      .filter((p) => p.status === "pending")
-      .reduce((sum, p) => sum + Number(p.value), 0);
+      if (quotesError) {
+        throw quotesError;
+      }
 
-    const lost = (quotes || [])
-      .reduce((sum, q) => sum + Number(q.value), 0);
+      const received = (payments || [])
+        .filter((p) => p.status === "paid")
+        .reduce((sum, p) => sum + Number(p.value), 0);
 
-    setStats({ received, pending, lost });
+      const pending = (payments || [])
+        .filter((p) => p.status === "pending")
+        .reduce((sum, p) => sum + Number(p.value), 0);
 
-    // Recent payments for activity feed
-    const { data: recent } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(5);
+      const lost = (quotes || [])
+        .reduce((sum, q) => sum + Number(q.value), 0);
 
-    setRecentPayments(recent || []);
-    setLoading(false);
-  };
+      const { data: recent, error: recentError } = await supabase
+        .from("payments")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
 
-  useEffect(() => {
-    fetchData();
-  }, [user]);
+      if (recentError) {
+        throw recentError;
+      }
 
-  if (loading) {
+      return {
+        stats: { received, pending, lost },
+        recentPayments: recent || [],
+      };
+    },
+    retry: 1,
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível carregar os dados do dashboard.",
+      });
+    },
+  });
+
+  if (isLoading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center py-20">
@@ -113,7 +111,7 @@ const Dashboard = () => {
           <div className="pointer-events-none absolute -top-16 right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
           <p className="text-primary-foreground/80 mb-2">Este mês você ganhou</p>
           <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
-            R$ {stats.received.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            R$ {data?.stats.received.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
         </div>
 
@@ -125,7 +123,7 @@ const Dashboard = () => {
               <div>
                 <p className="text-muted-foreground mb-1">Pendente</p>
                 <p className="text-2xl font-semibold text-foreground">
-                  R$ {stats.pending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  R$ {data?.stats.pending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="w-12 h-12 bg-warning/10 rounded-2xl flex items-center justify-center">
@@ -140,7 +138,7 @@ const Dashboard = () => {
               <div>
                 <p className="text-muted-foreground mb-1">Orçamentos perdidos</p>
                 <p className="text-2xl font-semibold text-foreground">
-                  R$ {stats.lost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  R$ {data?.stats.lost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="w-12 h-12 bg-destructive/10 rounded-2xl flex items-center justify-center">
@@ -151,11 +149,11 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        {recentPayments.length > 0 && (
+        {(data?.recentPayments.length || 0) > 0 && (
           <div className="mt-8">
             <h2 className="text-lg font-semibold text-foreground mb-4">Atividade recente</h2>
             <div className="bg-card border border-border/80 rounded-2xl divide-y divide-border/80 shadow-soft">
-              {recentPayments.map((payment) => (
+              {data?.recentPayments.map((payment) => (
                 <div key={payment.id} className="p-4 flex items-center justify-between">
                   <div>
                     <p className="font-medium text-foreground">{payment.client_name}</p>
@@ -175,7 +173,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {recentPayments.length === 0 && (
+        {(data?.recentPayments.length || 0) === 0 && (
           <div className="mt-8 text-center py-12 bg-card border border-border/80 rounded-2xl shadow-soft">
             <p className="text-muted-foreground">
               Nenhuma atividade ainda. Comece cadastrando seus clientes e orçamentos!
