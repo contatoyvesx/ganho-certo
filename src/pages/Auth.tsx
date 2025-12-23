@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, signUp, signIn, loading: authLoading } = useAuth();
   
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [showPassword, setShowPassword] = useState(false);
@@ -21,19 +23,88 @@ const Auth = () => {
     password: "",
   });
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate("/dashboard");
+    }
+  }, [user, authLoading, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate authentication - will be replaced with real auth
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      if (isLogin) {
+        const { error } = await signIn(formData.email, formData.password);
+        
+        if (error) {
+          let errorMessage = "Erro ao fazer login.";
+          if (error.message.includes("Invalid login credentials")) {
+            errorMessage = "Email ou senha incorretos.";
+          } else if (error.message.includes("Email not confirmed")) {
+            errorMessage = "Confirme seu email antes de fazer login.";
+          }
+          toast({
+            variant: "destructive",
+            title: "Erro no login",
+            description: errorMessage,
+          });
+          setLoading(false);
+          return;
+        }
+        
+        toast({
+          title: "Login realizado!",
+          description: "Você será redirecionado para o painel.",
+        });
+        navigate("/dashboard");
+      } else {
+        if (!formData.name.trim()) {
+          toast({
+            variant: "destructive",
+            title: "Nome obrigatório",
+            description: "Por favor, digite seu nome.",
+          });
+          setLoading(false);
+          return;
+        }
+
+        const { error } = await signUp(formData.email, formData.password, formData.name);
+        
+        if (error) {
+          let errorMessage = "Erro ao criar conta.";
+          if (error.message.includes("User already registered")) {
+            errorMessage = "Este email já está cadastrado. Tente fazer login.";
+          } else if (error.message.includes("Password should be at least")) {
+            errorMessage = "A senha deve ter pelo menos 6 caracteres.";
+          } else if (error.message.includes("Invalid email")) {
+            errorMessage = "Email inválido.";
+          }
+          toast({
+            variant: "destructive",
+            title: "Erro no cadastro",
+            description: errorMessage,
+          });
+          setLoading(false);
+          return;
+        }
+        
+        toast({
+          title: "Conta criada!",
+          description: "Você será redirecionado para o painel.",
+        });
+        navigate("/dashboard");
+      }
+    } catch (err) {
       toast({
-        title: isLogin ? "Login realizado!" : "Conta criada!",
-        description: "Você será redirecionado para o painel.",
+        variant: "destructive",
+        title: "Erro",
+        description: "Algo deu errado. Tente novamente.",
       });
-      navigate("/dashboard");
-    }, 1000);
+    }
+    
+    setLoading(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,6 +113,14 @@ const Auth = () => {
       [e.target.name]: e.target.value,
     });
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
