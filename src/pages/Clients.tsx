@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,27 +10,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Phone, User, Search } from "lucide-react";
+import { Plus, Phone, User, Search, Loader2 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Client {
   id: string;
   name: string;
   phone: string;
-  serviceType: string;
-  notes?: string;
+  service_type: string;
+  notes?: string | null;
 }
 
 const Clients = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [clients, setClients] = useState<Client[]>([
-    { id: "1", name: "João da Silva", phone: "(11) 99999-9999", serviceType: "Ar-condicionado" },
-    { id: "2", name: "Maria Santos", phone: "(11) 98888-8888", serviceType: "Limpeza" },
-    { id: "3", name: "Carlos Oliveira", phone: "(11) 97777-7777", serviceType: "Elétrica" },
-  ]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -39,25 +40,74 @@ const Clients = () => {
     notes: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchClients = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from("clients")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching clients:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível carregar os clientes.",
+      });
+    } else {
+      setClients(data || []);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchClients();
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newClient: Client = {
-      id: Date.now().toString(),
-      ...formData,
-    };
-    setClients([newClient, ...clients]);
-    setFormData({ name: "", phone: "", serviceType: "", notes: "" });
-    setOpen(false);
-    toast({
-      title: "Cliente cadastrado!",
-      description: `${formData.name} foi adicionado à sua lista.`,
-    });
+    if (!user) return;
+    
+    setSubmitting(true);
+
+    const { data, error } = await supabase
+      .from("clients")
+      .insert({
+        user_id: user.id,
+        name: formData.name,
+        phone: formData.phone,
+        service_type: formData.serviceType,
+        notes: formData.notes || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating client:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível cadastrar o cliente.",
+      });
+    } else {
+      setClients([data, ...clients]);
+      setFormData({ name: "", phone: "", serviceType: "", notes: "" });
+      setOpen(false);
+      toast({
+        title: "Cliente cadastrado!",
+        description: `${formData.name} foi adicionado à sua lista.`,
+      });
+    }
+    
+    setSubmitting(false);
   };
 
   const filteredClients = clients.filter(
     (client) =>
       client.name.toLowerCase().includes(search.toLowerCase()) ||
-      client.serviceType.toLowerCase().includes(search.toLowerCase())
+      client.service_type.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -120,8 +170,15 @@ const Clients = () => {
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   />
                 </div>
-                <Button type="submit" className="w-full">
-                  Cadastrar cliente
+                <Button type="submit" className="w-full" disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    "Cadastrar cliente"
+                  )}
                 </Button>
               </form>
             </DialogContent>
@@ -140,41 +197,49 @@ const Clients = () => {
         </div>
 
         {/* Clients List */}
-        <div className="space-y-3">
-          {filteredClients.length === 0 ? (
-            <div className="text-center py-12 bg-card border border-border rounded-xl">
-              <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Nenhum cliente encontrado</p>
-            </div>
-          ) : (
-            filteredClients.map((client, index) => (
-              <div
-                key={client.id}
-                className="bg-card border border-border rounded-xl p-4 flex items-center justify-between animate-slide-up"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-primary font-semibold text-lg">
-                      {client.name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">{client.name}</p>
-                    <p className="text-sm text-muted-foreground">{client.serviceType}</p>
-                  </div>
-                </div>
-                <a
-                  href={`tel:${client.phone}`}
-                  className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
-                >
-                  <Phone className="h-4 w-4" />
-                  <span className="hidden sm:inline">{client.phone}</span>
-                </a>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredClients.length === 0 ? (
+              <div className="text-center py-12 bg-card border border-border rounded-xl">
+                <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">
+                  {clients.length === 0 ? "Nenhum cliente cadastrado ainda" : "Nenhum cliente encontrado"}
+                </p>
               </div>
-            ))
-          )}
-        </div>
+            ) : (
+              filteredClients.map((client, index) => (
+                <div
+                  key={client.id}
+                  className="bg-card border border-border rounded-xl p-4 flex items-center justify-between animate-slide-up"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                      <span className="text-primary font-semibold text-lg">
+                        {client.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{client.name}</p>
+                      <p className="text-sm text-muted-foreground">{client.service_type}</p>
+                    </div>
+                  </div>
+                  <a
+                    href={`tel:${client.phone}`}
+                    className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
+                  >
+                    <Phone className="h-4 w-4" />
+                    <span className="hidden sm:inline">{client.phone}</span>
+                  </a>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </AppLayout>
   );

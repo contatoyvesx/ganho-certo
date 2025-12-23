@@ -1,15 +1,99 @@
-import { DollarSign, Clock, XCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Clock, XCircle, Loader2 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Payment {
+  id: string;
+  client_name: string;
+  service: string;
+  value: number;
+  status: "pending" | "paid";
+  created_at: string;
+}
+
+interface Quote {
+  id: string;
+  value: number;
+  status: "sent" | "approved" | "lost";
+}
 
 const Dashboard = () => {
-  // Mock data - will be replaced with real data
-  const stats = {
-    received: 4250.00,
-    pending: 1800.00,
-    lost: 500.00,
-  };
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    received: 0,
+    pending: 0,
+    lost: 0,
+  });
+  const [recentPayments, setRecentPayments] = useState<Payment[]>([]);
 
   const currentMonth = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+  const fetchData = async () => {
+    if (!user) return;
+
+    // Get current month range
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+
+    // Fetch payments
+    const { data: payments } = await supabase
+      .from("payments")
+      .select("*")
+      .eq("user_id", user.id)
+      .gte("created_at", startOfMonth)
+      .lte("created_at", endOfMonth);
+
+    // Fetch quotes for lost value
+    const { data: quotes } = await supabase
+      .from("quotes")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("status", "lost")
+      .gte("created_at", startOfMonth)
+      .lte("created_at", endOfMonth);
+
+    const received = (payments || [])
+      .filter((p) => p.status === "paid")
+      .reduce((sum, p) => sum + Number(p.value), 0);
+
+    const pending = (payments || [])
+      .filter((p) => p.status === "pending")
+      .reduce((sum, p) => sum + Number(p.value), 0);
+
+    const lost = (quotes || [])
+      .reduce((sum, q) => sum + Number(q.value), 0);
+
+    setStats({ received, pending, lost });
+
+    // Recent payments for activity feed
+    const { data: recent } = await supabase
+      .from("payments")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    setRecentPayments(recent || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -66,41 +150,37 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Atividade recente</h2>
-          <div className="bg-card border border-border rounded-xl divide-y divide-border">
-            <div className="p-4 flex items-center justify-between">
-              <div>
-                <p className="font-medium text-foreground">João da Silva</p>
-                <p className="text-sm text-muted-foreground">Instalação de ar-condicionado</p>
-              </div>
-              <div className="text-right">
-                <p className="font-medium text-success">R$ 800,00</p>
-                <p className="text-sm text-muted-foreground">Pago</p>
-              </div>
-            </div>
-            <div className="p-4 flex items-center justify-between">
-              <div>
-                <p className="font-medium text-foreground">Maria Santos</p>
-                <p className="text-sm text-muted-foreground">Limpeza geral</p>
-              </div>
-              <div className="text-right">
-                <p className="font-medium text-warning">R$ 350,00</p>
-                <p className="text-sm text-muted-foreground">Pendente</p>
-              </div>
-            </div>
-            <div className="p-4 flex items-center justify-between">
-              <div>
-                <p className="font-medium text-foreground">Carlos Oliveira</p>
-                <p className="text-sm text-muted-foreground">Reparo elétrico</p>
-              </div>
-              <div className="text-right">
-                <p className="font-medium text-success">R$ 450,00</p>
-                <p className="text-sm text-muted-foreground">Pago</p>
-              </div>
+        {recentPayments.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-lg font-semibold text-foreground mb-4">Atividade recente</h2>
+            <div className="bg-card border border-border rounded-xl divide-y divide-border">
+              {recentPayments.map((payment) => (
+                <div key={payment.id} className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-foreground">{payment.client_name}</p>
+                    <p className="text-sm text-muted-foreground">{payment.service}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-medium ${payment.status === "paid" ? "text-success" : "text-warning"}`}>
+                      R$ {Number(payment.value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {payment.status === "paid" ? "Pago" : "Pendente"}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
+
+        {recentPayments.length === 0 && (
+          <div className="mt-8 text-center py-12 bg-card border border-border rounded-xl">
+            <p className="text-muted-foreground">
+              Nenhuma atividade ainda. Comece cadastrando seus clientes e orçamentos!
+            </p>
+          </div>
+        )}
       </div>
     </AppLayout>
   );

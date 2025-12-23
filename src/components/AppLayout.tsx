@@ -1,9 +1,10 @@
 import { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { LayoutDashboard, Users, FileText, DollarSign, LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -19,9 +20,16 @@ const navigation = [
 const AppLayout = ({ children }: AppLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut, user } = useAuth();
+  const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut();
+    toast({
+      title: "Até logo!",
+      description: "Você saiu da sua conta.",
+    });
     navigate("/");
   };
 
@@ -114,8 +122,13 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             </div>
           </nav>
 
-          {/* Logout */}
+          {/* User & Logout */}
           <div className="px-4 py-4 border-t border-border">
+            {user && (
+              <p className="px-4 py-2 text-sm text-muted-foreground truncate">
+                {user.email}
+              </p>
+            )}
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors w-full"
