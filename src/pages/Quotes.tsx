@@ -189,7 +189,7 @@ const Quotes = () => {
                 Novo orçamento
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md rounded-2xl">
               <DialogHeader>
                 <DialogTitle>Novo orçamento</DialogTitle>
               </DialogHeader>
@@ -279,7 +279,7 @@ const Quotes = () => {
         ) : (
           <div className="space-y-3">
             {filteredQuotes.length === 0 ? (
-              <div className="text-center py-12 bg-card border border-border rounded-xl">
+              <div className="text-center py-12 bg-card border border-border/80 rounded-2xl shadow-soft">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
                   {quotes.length === 0 ? "Nenhum orçamento registrado ainda" : "Nenhum orçamento encontrado"}
@@ -289,7 +289,7 @@ const Quotes = () => {
               filteredQuotes.map((quote, index) => (
                 <div
                   key={quote.id}
-                  className="bg-card border border-border rounded-xl p-4 animate-slide-up"
+                  className="bg-card border border-border/80 rounded-2xl p-4 animate-slide-up shadow-soft transition-transform hover:-translate-y-0.5 hover:shadow-soft-lg"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

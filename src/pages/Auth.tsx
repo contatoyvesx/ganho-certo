@@ -123,9 +123,9 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/50 flex flex-col">
       {/* Header */}
-      <header className="border-b border-border">
+      <header className="border-b border-border/60 bg-background/80 backdrop-blur">
         <div className="container mx-auto px-4 py-4">
           <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
@@ -139,7 +139,7 @@ const Auth = () => {
         <div className="w-full max-w-md animate-fade-in">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 bg-primary rounded-xl shadow-soft flex items-center justify-center mx-auto mb-4">
               <span className="text-primary-foreground font-bold text-lg">GS</span>
             </div>
             <h1 className="text-2xl font-semibold text-foreground">
@@ -154,7 +154,7 @@ const Auth = () => {
           </div>
 
           {/* Form Card */}
-          <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+          <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-soft transition-shadow hover:shadow-soft-lg">
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
