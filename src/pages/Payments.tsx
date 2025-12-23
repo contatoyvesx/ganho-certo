@@ -162,7 +162,7 @@ const Payments = () => {
                   {pendingPayments.map((payment, index) => (
                     <div
                       key={payment.id}
-                      className="bg-card border border-border rounded-xl p-4 animate-slide-up"
+                      className="bg-card border border-border/80 rounded-2xl p-4 animate-slide-up shadow-soft transition-transform hover:-translate-y-0.5"
                       style={{ animationDelay: `${index * 0.05}s` }}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -200,7 +200,7 @@ const Payments = () => {
                   {paidPayments.map((payment, index) => (
                     <div
                       key={payment.id}
-                      className="bg-card border border-border rounded-xl p-4 animate-slide-up"
+                      className="bg-card border border-border/80 rounded-2xl p-4 animate-slide-up shadow-soft transition-transform hover:-translate-y-0.5"
                       style={{ animationDelay: `${index * 0.05}s` }}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -229,7 +229,7 @@ const Payments = () => {
             )}
 
             {filteredPayments.length === 0 && (
-              <div className="text-center py-12 bg-card border border-border rounded-xl">
+              <div className="text-center py-12 bg-card border border-border/80 rounded-2xl shadow-soft">
                 <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
                   {payments.length === 0 ? "Nenhum pagamento registrado ainda" : "Nenhum pagamento encontrado"}
@@ -241,13 +241,13 @@ const Payments = () => {
 
         {/* Confirm Payment Dialog */}
         <Dialog open={!!confirmDialog} onOpenChange={() => setConfirmDialog(null)}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md rounded-2xl">
             <DialogHeader>
               <DialogTitle>Confirmar pagamento</DialogTitle>
             </DialogHeader>
             {confirmDialog && (
               <div className="space-y-4 mt-4">
-                <div className="bg-secondary/50 rounded-lg p-4">
+                <div className="bg-secondary/60 rounded-2xl p-4">
                   <p className="font-medium text-foreground">{confirmDialog.client_name}</p>
                   <p className="text-sm text-muted-foreground">{confirmDialog.service}</p>
                   <p className="text-xl font-bold text-foreground mt-2">
