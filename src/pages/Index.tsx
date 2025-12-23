@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Users, FileText, DollarSign, ArrowRight, CheckCircle } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Index = () => {
   return (
@@ -14,11 +15,14 @@ const Index = () => {
             </div>
             <span className="font-semibold text-lg text-foreground">Gestão Simples</span>
           </div>
-          <Link to="/auth">
-            <Button variant="outline" size="sm">
-              Entrar
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link to="/auth">
+              <Button variant="outline" size="sm">
+                Entrar
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 

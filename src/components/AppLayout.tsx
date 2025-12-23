@@ -5,6 +5,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -45,12 +46,15 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             </div>
             <span className="font-semibold text-foreground">Gestão Simples</span>
           </div>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle className="shadow-soft h-10" />
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg border border-border bg-background/90 text-muted-foreground shadow-soft hover:text-foreground transition-colors"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -97,6 +101,10 @@ const AppLayout = ({ children }: AppLayoutProps) => {
               <span className="text-primary-foreground font-bold">GS</span>
             </div>
             <span className="font-semibold text-lg text-foreground">Gestão Simples</span>
+          </div>
+
+          <div className="px-4 pt-4">
+            <ThemeToggle className="w-full justify-center" />
           </div>
 
           {/* Navigation */}
