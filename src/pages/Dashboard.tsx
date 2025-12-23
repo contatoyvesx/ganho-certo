@@ -109,7 +109,8 @@ const Dashboard = () => {
         </div>
 
         {/* Main Stat */}
-        <div className="bg-gradient-to-br from-primary via-primary to-primary/80 rounded-2xl p-8 mb-6 animate-scale-in shadow-soft-lg">
+        <div className="bg-gradient-to-br from-primary via-primary to-primary/80 rounded-2xl p-8 mb-6 animate-scale-in shadow-soft-lg relative overflow-hidden">
+          <div className="pointer-events-none absolute -top-16 right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
           <p className="text-primary-foreground/80 mb-2">Este mês você ganhou</p>
           <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
             R$ {stats.received.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -119,7 +120,7 @@ const Dashboard = () => {
         {/* Stats Grid */}
         <div className="grid md:grid-cols-2 gap-4">
           {/* Pending */}
-          <div className="bg-card border border-border/80 rounded-2xl p-6 animate-slide-up shadow-soft" style={{ animationDelay: '0.1s' }}>
+          <div className="bg-card border border-border/80 rounded-2xl p-6 animate-slide-up shadow-soft transition-transform hover:-translate-y-0.5 hover:shadow-soft-lg" style={{ animationDelay: '0.1s' }}>
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-muted-foreground mb-1">Pendente</p>
@@ -134,7 +135,7 @@ const Dashboard = () => {
           </div>
 
           {/* Lost */}
-          <div className="bg-card border border-border/80 rounded-2xl p-6 animate-slide-up shadow-soft" style={{ animationDelay: '0.2s' }}>
+          <div className="bg-card border border-border/80 rounded-2xl p-6 animate-slide-up shadow-soft transition-transform hover:-translate-y-0.5 hover:shadow-soft-lg" style={{ animationDelay: '0.2s' }}>
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-muted-foreground mb-1">Orçamentos perdidos</p>

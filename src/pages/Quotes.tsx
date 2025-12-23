@@ -289,7 +289,7 @@ const Quotes = () => {
               filteredQuotes.map((quote, index) => (
                 <div
                   key={quote.id}
-                  className="bg-card border border-border/80 rounded-2xl p-4 animate-slide-up shadow-soft transition-transform hover:-translate-y-0.5"
+                  className="bg-card border border-border/80 rounded-2xl p-4 animate-slide-up shadow-soft transition-transform hover:-translate-y-0.5 hover:shadow-soft-lg"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

@@ -214,7 +214,7 @@ const Clients = () => {
               filteredClients.map((client, index) => (
                 <div
                   key={client.id}
-                  className="bg-card border border-border/80 rounded-2xl p-4 flex items-center justify-between animate-slide-up shadow-soft transition-transform hover:-translate-y-0.5"
+                  className="bg-card border border-border/80 rounded-2xl p-4 flex items-center justify-between animate-slide-up shadow-soft transition-transform hover:-translate-y-0.5 hover:shadow-soft-lg"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
                   <div className="flex items-center gap-4">

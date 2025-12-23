@@ -34,9 +34,10 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/60">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/60 relative overflow-hidden">
+      <div className="pointer-events-none absolute -top-32 right-0 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 bg-background/90 backdrop-blur border-b border-border z-50">
+      <header className="lg:hidden fixed top-0 left-0 right-0 bg-background/85 backdrop-blur border-b border-border z-50">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-xl shadow-soft flex items-center justify-center">
@@ -89,7 +90,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
       <div className="flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-background/95 backdrop-blur border-r border-border shadow-soft">
+        <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-background/90 backdrop-blur border-r border-border shadow-soft">
           {/* Logo */}
           <div className="flex items-center gap-3 px-6 py-6 border-b border-border">
             <div className="w-10 h-10 bg-primary rounded-xl shadow-soft flex items-center justify-center">

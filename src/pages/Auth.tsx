@@ -154,7 +154,7 @@ const Auth = () => {
           </div>
 
           {/* Form Card */}
-          <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-soft">
+          <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-soft transition-shadow hover:shadow-soft-lg">
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
