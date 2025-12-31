@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          client_id: string | null
+          client_name: string
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["appointment_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_name: string
+          created_at?: string
+          date: string
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["appointment_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          client_name?: string
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["appointment_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           created_at: string
@@ -183,6 +230,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      appointment_status: "scheduled" | "completed" | "cancelled"
       payment_method: "pix" | "cash" | "other"
       payment_status: "pending" | "paid"
       quote_status: "sent" | "approved" | "lost"
@@ -313,6 +361,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      appointment_status: ["scheduled", "completed", "cancelled"],
       payment_method: ["pix", "cash", "other"],
       payment_status: ["pending", "paid"],
       quote_status: ["sent", "approved", "lost"],
