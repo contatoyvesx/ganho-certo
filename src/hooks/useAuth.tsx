@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  error: string | null;
   signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<void>;
@@ -18,32 +19,84 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    let isMounted = true;
 
-      // 👉 garante profile no primeiro login (email ou Google)
-      if (event === "SIGNED_IN" && session?.user) {
-        await supabase.from("profiles").upsert({
-          id: session.user.id,
-          email: session.user.email,
+    const safeSetAuthState = (nextSession: Session | null) => {
+      if (!isMounted) return;
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+    };
+
+    const bootAuth = async () => {
+      try {
+        const envMissing = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        if (envMissing) {
+          throw new Error("Credenciais do Supabase não encontradas. Verifique o arquivo .env");
+        }
+
+        const {
+          data: authListener,
+          error: authListenerError,
+        } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
+          safeSetAuthState(nextSession);
+          setLoading(false);
+
+          // 👉 garante profile no primeiro login (email ou Google)
+          if (event === "SIGNED_IN" && nextSession?.user) {
+            try {
+              await supabase.from("profiles").upsert({
+                id: nextSession.user.id,
+                email: nextSession.user.email,
+              });
+            } catch (error) {
+              console.error("Erro ao garantir profile", error);
+            }
+          }
         });
-      }
-    });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+        if (authListenerError) {
+          console.error("Erro ao inicializar listener de auth", authListenerError);
+          setError("Erro ao inicializar autenticação. Tente atualizar a página.");
+          setLoading(false);
+        }
+
+        const loadSession = async () => {
+          try {
+            const { data, error } = await supabase.auth.getSession();
+            if (error) {
+              console.error("Erro ao carregar sessão", error);
+              setError("Não foi possível carregar a sessão. Faça login novamente.");
+              return;
+            }
+
+            safeSetAuthState(data.session);
+          } catch (error) {
+            console.error("Erro inesperado ao carregar sessão", error);
+            setError("Erro inesperado ao carregar a sessão.");
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        void loadSession();
+
+        return authListener?.subscription;
+      } catch (error) {
+        console.error("Erro ao iniciar autenticação", error);
+        setError(error instanceof Error ? error.message : "Erro desconhecido ao iniciar autenticação");
+        setLoading(false);
+        return null;
+      }
+    };
+
+    const subscriptionPromise = bootAuth();
 
     return () => {
-      subscription.unsubscribe();
+      isMounted = false;
+      void subscriptionPromise.then((subscription) => subscription?.unsubscribe());
     };
   }, []);
 
@@ -89,6 +142,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         session,
         loading,
+        error,
         signUp,
         signIn,
         signInWithGoogle,

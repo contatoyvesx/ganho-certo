@@ -17,6 +17,7 @@ const Auth = () => {
     signIn,
     signInWithGoogle,
     loading: authLoading,
+    error: authError,
   } = useAuth();
 
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
@@ -114,6 +115,18 @@ const Auth = () => {
   };
 
   if (authLoading) {
+    if (authError) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
+          <div className="space-y-4 max-w-md">
+            <p className="text-lg font-semibold text-destructive">Erro ao iniciar sessão</p>
+            <p className="text-muted-foreground">{authError}</p>
+            <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Carregando...</div>
