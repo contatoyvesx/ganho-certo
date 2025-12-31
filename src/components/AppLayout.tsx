@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, FileText, DollarSign, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, FileText, DollarSign, LogOut, Menu, X, CalendarDays } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +13,7 @@ interface AppLayoutProps {
 
 const navigation = [
   { name: "Mês", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Agenda", href: "/agenda", icon: CalendarDays },
   { name: "Clientes", href: "/clients", icon: Users },
   { name: "Orçamentos", href: "/quotes", icon: FileText },
   { name: "Pagamentos", href: "/payments", icon: DollarSign },
