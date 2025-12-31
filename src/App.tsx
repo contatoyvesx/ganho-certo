@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import Quotes from "./pages/Quotes";
 import Payments from "./pages/Payments";
+import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,11 @@ const App = () => (
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/agenda" element={
+              <ProtectedRoute>
+                <Agenda />
               </ProtectedRoute>
             } />
             <Route path="/clients" element={
