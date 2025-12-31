@@ -20,19 +20,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const safeSetAuthState = (nextSession: Session | null) => {
+      if (!isMounted) return;
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+    };
+
     const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+      data: authListener,
+      error: authListenerError,
+    } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
+      safeSetAuthState(nextSession);
       setLoading(false);
 
       // 👉 garante profile no primeiro login (email ou Google)
-      if (event === "SIGNED_IN" && session?.user) {
+      if (event === "SIGNED_IN" && nextSession?.user) {
         try {
           await supabase.from("profiles").upsert({
-            id: session.user.id,
-            email: session.user.email,
+            id: nextSession.user.id,
+            email: nextSession.user.email,
           });
         } catch (error) {
           console.error("Erro ao garantir profile", error);
@@ -40,14 +48,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
+    if (authListenerError) {
+      console.error("Erro ao inicializar listener de auth", authListenerError);
+      setLoading(false);
+    }
+
     const loadSession = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
-        const session = data.session;
-        setSession(session);
-        setUser(session?.user ?? null);
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Erro ao carregar sessão", error);
+          return;
+        }
+
+        safeSetAuthState(data.session);
       } catch (error) {
-        console.error("Erro ao carregar sessão", error);
+        console.error("Erro inesperado ao carregar sessão", error);
       } finally {
         setLoading(false);
       }
@@ -56,7 +72,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     void loadSession();
 
     return () => {
-      subscription.unsubscribe();
+      isMounted = false;
+      authListener?.subscription.unsubscribe();
     };
   }, []);
 
