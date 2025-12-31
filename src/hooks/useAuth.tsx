@@ -29,18 +29,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // 👉 garante profile no primeiro login (email ou Google)
       if (event === "SIGNED_IN" && session?.user) {
-        await supabase.from("profiles").upsert({
-          id: session.user.id,
-          email: session.user.email,
-        });
+        try {
+          await supabase.from("profiles").upsert({
+            id: session.user.id,
+            email: session.user.email,
+          });
+        } catch (error) {
+          console.error("Erro ao garantir profile", error);
+        }
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const loadSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const session = data.session;
+        setSession(session);
+        setUser(session?.user ?? null);
+      } catch (error) {
+        console.error("Erro ao carregar sessão", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadSession();
 
     return () => {
       subscription.unsubscribe();
