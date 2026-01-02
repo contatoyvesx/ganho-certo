@@ -258,7 +258,7 @@ const {
     });
   };
 
-  if (isLoading) {
+  if (isLoading && !isError) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center py-20">
