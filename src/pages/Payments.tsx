@@ -124,27 +124,32 @@ const Payments = () => {
     },
   });
 
-  const { data: payments, isLoading } = useQuery({
-    queryKey: ["payments", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      if (!user) throw new Error("Usuário não autenticado");
-      const { data, error } = await supabase
-        .from("payments")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível carregar os pagamentos.",
-      });
-    },
-  });
+const {
+  data: payments = [],
+  isLoading,
+  isError,
+} = useQuery({
+  queryKey: ["payments", user?.id],
+  enabled: !!user,
+  queryFn: async () => {
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from("payments")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Payments query error:", error);
+      throw error;
+    }
+
+    return data ?? [];
+  },
+  staleTime: 30_000,
+});
+
 
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["payments", user?.id] });
@@ -476,7 +481,7 @@ const Payments = () => {
           />
         </div>
 
-        {isLoading ? (
+        {isLoading && !isError ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
