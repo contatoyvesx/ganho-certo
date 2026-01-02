@@ -61,28 +61,32 @@ const Clients = () => {
     },
   });
 
-  const { data: clients, isLoading } = useQuery({
-    queryKey: ["clients", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      if (!user) throw new Error("Usuário não autenticado");
-      const { data, error } = await supabase
-        .from("clients")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+const {
+  data: clients = [],
+  isLoading,
+  isError,
+} = useQuery({
+  queryKey: ["clients", user?.id],
+  enabled: !!user,
+  queryFn: async () => {
+    if (!user) return [];
 
-      if (error) throw error;
-      return data || [];
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível carregar os clientes.",
-      });
-    },
-  });
+    const { data, error } = await supabase
+      .from("clients")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Clients query error:", error);
+      throw error;
+    }
+
+    return data ?? [];
+  },
+  staleTime: 30_000,
+});
+
 
   const resetForm = () => {
     form.reset({ name: "", phone: "", service_type: "", notes: "" });
@@ -313,7 +317,7 @@ const Clients = () => {
         </div>
 
         {/* Clients List */}
-        {isLoading ? (
+       {isLoading && !isError ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
