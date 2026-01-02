@@ -20,60 +20,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
+    let mounted = true;
 
-    const safeSetAuthState = (nextSession: Session | null) => {
-      if (!isMounted) return;
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
+    const applySession = (s: Session | null) => {
+      if (!mounted) return;
+      setSession(s);
+      setUser(s?.user ?? null);
+      setLoading(false);
     };
 
-    const {
-      data: authListener,
-      error: authListenerError,
-    } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
-      safeSetAuthState(nextSession);
-      setLoading(false);
-
-      // 👉 garante profile no primeiro login (email ou Google)
-      if (event === "SIGNED_IN" && nextSession?.user) {
-        try {
-          await supabase.from("profiles").upsert({
-            id: nextSession.user.id,
-            email: nextSession.user.email,
-          });
-        } catch (error) {
-          console.error("Erro ao garantir profile", error);
-        }
-      }
+    // sessão inicial
+    supabase.auth.getSession().then(({ data }) => {
+      applySession(data.session);
     });
 
-    if (authListenerError) {
-      console.error("Erro ao inicializar listener de auth", authListenerError);
-      setLoading(false);
-    }
+    const { data: sub } = supabase.auth.onAuthStateChange(
+      async (_event, nextSession) => {
+        applySession(nextSession);
 
-    const loadSession = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error("Erro ao carregar sessão", error);
-          return;
+        // garante profile (não pode travar auth)
+        if (nextSession?.user) {
+          await supabase.from("profiles").upsert(
+            {
+              id: nextSession.user.id,
+              email: nextSession.user.email,
+            },
+            { ignoreDuplicates: true }
+          );
         }
-
-        safeSetAuthState(data.session);
-      } catch (error) {
-        console.error("Erro inesperado ao carregar sessão", error);
-      } finally {
-        setLoading(false);
       }
-    };
-
-    void loadSession();
+    );
 
     return () => {
-      isMounted = false;
-      authListener?.subscription.unsubscribe();
+      mounted = false;
+      sub.subscription.unsubscribe();
     };
   }, []);
 
@@ -83,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       password,
       options: {
         data: { name },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
       },
     });
 
@@ -99,7 +79,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error: error as Error | null };
   };
 
-  // ✅ LOGIN COM GOOGLE
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -131,9 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
+  return ctx;
 };
