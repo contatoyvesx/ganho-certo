@@ -90,27 +90,32 @@ const Quotes = () => {
     },
   });
 
-  const { data: quotes, isLoading } = useQuery({
-    queryKey: ["quotes", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      if (!user) throw new Error("Usuário não autenticado");
-      const { data, error } = await supabase
-        .from("quotes")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível carregar os orçamentos.",
-      });
-    },
-  });
+const {
+  data: quotes = [],
+  isLoading,
+  isError,
+} = useQuery({
+  queryKey: ["quotes", user?.id],
+  enabled: !!user,
+  queryFn: async () => {
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from("quotes")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Quotes query error:", error);
+      throw error;
+    }
+
+    return data ?? [];
+  },
+  staleTime: 30_000,
+});
+
 
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["quotes", user?.id] });
