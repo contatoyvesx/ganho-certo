@@ -75,28 +75,32 @@ const Agenda = () => {
     },
   });
 
-  const { data: appointments, isLoading } = useQuery({
-    queryKey: ["appointments", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      if (!user) throw new Error("Usuário não autenticado");
-      const { data, error } = await supabase
-        .from("appointments")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("date", { ascending: true });
+const {
+  data: appointments = [],
+  isLoading,
+  isError,
+} = useQuery({
+  queryKey: ["appointments", user?.id],
+  enabled: !!user,
+  queryFn: async () => {
+    if (!user) return [];
 
-      if (error) throw error;
-      return data || [];
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível carregar a agenda.",
-      });
-    },
-  });
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("date", { ascending: true });
+
+    if (error) {
+      console.error("Appointments query error:", error);
+      throw error;
+    }
+
+    return data ?? [];
+  },
+  staleTime: 30_000,
+});
+
 
   const invalidateAppointments = () => {
     queryClient.invalidateQueries({ queryKey: ["appointments", user?.id] });
