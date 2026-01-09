@@ -8,7 +8,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -80,12 +80,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
+        skipBrowserRedirect: true,
       },
     });
+
+    if (error) {
+      return { error: error as Error };
+    }
+
+    if (!data?.url) {
+      return {
+        error: new Error("URL de autenticação não disponível."),
+      };
+    }
+
+    window.location.assign(data.url);
+    return { error: null };
   };
 
   const signOut = async () => {

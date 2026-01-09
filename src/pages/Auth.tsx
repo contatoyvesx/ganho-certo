@@ -106,6 +106,25 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    const { error } = await signInWithGoogle();
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro no login",
+        description:
+          error.message.includes("invalid_client") ||
+          error.message.includes("OAuth client was not found")
+            ? "Não foi possível autenticar com Google. Verifique as credenciais do OAuth no Supabase."
+            : "Não foi possível autenticar com Google.",
+      });
+      setLoading(false);
+      return;
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -158,7 +177,8 @@ const Auth = () => {
             <Button
               variant="outline"
               className="w-full h-12 mb-4"
-              onClick={signInWithGoogle}
+              onClick={handleGoogleLogin}
+              disabled={loading}
             >
               Entrar com Google
             </Button>
